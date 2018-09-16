@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#33363b">
+    <meta name="msapplication-TileColor" content="#33363b">
+    
+    
+    
+    <meta name="keywords" content="Java, 西瓜冰, SoSo">
+    
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/favicons/apple-touch-icon.png">
+    
+    
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicons/android-chrome-192x192.png">
+    
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/favicon-32x32.png">
+    
+    
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/favicon-16x16.png">
+    
+    
+    <link rel="mask-icon" href="/images/favicons/safari-pinned-tab.svg" color="#33363b">
+    
+    
+    <link rel="manifest" href="/images/favicons/site.webmanifest">
+    
+    
+    <meta name="msapplication-config" content="/images/favicons/browserconfig.xml">
+    
+    
+    <link rel="alternate" href="/atom.xml" title="SoSo" type="application/atom+xml" />
+    
+    
+    <link rel="shortcut icon" type="image/x-icon" href="/images/favicons/favicon.ico">
+    
+    
+    <link rel="stylesheet" type="text/css" href="/css/normalize.css">
+    <link rel="stylesheet" type="text/css" href="/css/index.css">
+    
+    <link rel="stylesheet" type="text/css" href="/css/sidebar.css">
+    
+    
+<link rel="stylesheet" type="text/css" href="/css/page.css">
+<link rel="stylesheet" type="text/css" href="/css/post.css">
+
+    <link rel="stylesheet" type="text/css" href="/css/custom.css">
+    <link rel="stylesheet" type="text/css" href="/css/atom-one-dark.css">
+    <link rel="stylesheet" type="text/css" href="/css/lightgallery.min.css">
+    <script type="text/javascript" src="/js/jquery.min.js"></script>
+    <script defer type="text/javascript" src="/js/util.js"></script>
+    <script defer type="text/javascript" src="/js/scrollspy.js"></script>
+    <script defer type="text/javascript" src="/js/fontawesome-all.min.js"></script>
+    <script defer type="text/javascript" src="/js/lightgallery.min.js"></script>
+    <script defer type="text/javascript" src="/js/lg-fullscreen.min.js"></script>
+    <script defer type="text/javascript" src="/js/lg-hash.min.js"></script>
+    <script defer type="text/javascript" src="/js/lg-pager.min.js"></script>
+    <script defer type="text/javascript" src="/js/lg-thumbnail.min.js"></script>
+    <script defer type="text/javascript" src="/js/lg-zoom.min.js"></script>
+    
+    
+    <script defer type="text/javascript" src="/js/search.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function () {
+      var searchPath = "search.xml";
+      if (searchPath.length === 0) {
+        searchPath = "search.xml";
+      }
+      var path = "/" + searchPath;
+      searchFunc(path, "search-input", "search-result");
+    });
+    </script>
+    
+    
+    <script defer type="text/javascript" src="/js/index.js"></script>
+    
+    <script defer type="text/javascript" src="/js/custom.js"></script>
+    <title>【笔记】JVM内存管理（二） - GC算法 | SoSo</title>
+  </head>
+  <body itemscope itemtype="http://schema.org/WebPage" lang="zh_CN"  data-spy="scroll" data-target=".list-group">
+    
+<header id="header" class="header" style="background: #33363b;">
+  <div class="container">
+    <div class="header-container">
+      <div class="header-title">
+        <h1 class="title"><a href="/">
+          <div class="logo">
+            <img src="/theme_aria_logo.png" alt="logo">
+          </div>
+        </a></h1>
+        <h2 class="subtitle"></h2>
+      </div>
+      
+    </div>
+    
+<nav id="nav" class="nav">
+  <a id="nav-toggle" class="nav-toggle"><i class="fas fa-bars"></i></a>
+  <ul id="menu">
+    
+    <li><a href="/">首页</a></li>
+    
+    <li><a href="/archives/">归档</a></li>
+    
+    <li><a href="/categories/">分类</a></li>
+    
+    <li><a href="/tags/">标签</a></li>
+    
+  </ul>
+</nav>
+
+
+  </div>
+</header>
+
+
+    <main id="main" class="main">
+      <div class="container">
+        <div class="main-container">
+          <div class="content">
+            
+<div id="post" class="post">
+  
+  <article class="post-article card" itemscope itemtype="http://schema.org/Article">
+    <div class="post-block">
+      <link itemprop="mainEntityOfPage" href="https://soso.github.io/2018/07/24/note-JVM-memory-2/">
+      <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+       <meta itemprop="name" content="许桂斌">
+       <meta itemprop="description" content="">
+       <meta itemprop="image" content="/images/avatar.jpg">
+      </span>
+      <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+       <meta itemprop="name" content="SoSo">
+      </span>
+    </div>
+    <header class="post-header">
+      <h1 class="post-title" itemprop="name headline">【笔记】JVM内存管理（二） - GC算法</h1>
+      <div class="post-meta">
+        
+        <span class="post-date">
+          <i class="far fa-calendar-plus"></i><span><time title="post-date" itemprop="dateCreated datePublished" datetime="2018-07-24T20:18:54+08:00">2018-07-24 12:18:54</time></span>
+        </span>
+        
+        
+        
+        <span class="post-meta-divider divider">|</span>
+        
+        <span class="post-categories">
+          
+          <i class="far fa-folder-open"></i><span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a></span>
+        </span>
+        
+        
+      </div>
+    </header>
+    <main class="post-main" itemprop="articleBody">
+      <p>垃圾回收主要是针对 Java 堆和方法区进行。<br><a id="more"></a></p>
+<h1 id="判断一个对象是否存活"><a href="#判断一个对象是否存活" class="headerlink" title="判断一个对象是否存活"></a>判断一个对象是否存活</h1><h2 id="引用计数算法"><a href="#引用计数算法" class="headerlink" title="引用计数算法"></a>引用计数算法</h2><p>给对象添加一个引用计数器，当对象增加一个引用时计数器加 1，引用失效时计数器减 1。当计数器为0时即可认为对象无用了，可进行回收。</p>
+<p>这种做法比较简单，但是这可能会引发循环引用的问题，当两个对象相互引用对方时，将导致引用计数器永远不为0，因此无法对它们进行回收。</p>
+<p><img src="/images/2018-07/循环引用1.png" alt="循环引用1"></p>
+<p>因为循环引用不好解决，所以Java 虚拟机不使用引用计数算法。</p>
+<h2 id="可达性分析算法"><a href="#可达性分析算法" class="headerlink" title="可达性分析算法"></a>可达性分析算法</h2><p>可达性分析是基于图论的分析方法，它会找一组对象作为GC Root（根结点），并从根结点进行遍历，遍历结束后如果发现某个对象是不可达的（即从GC Root到此对象没有路径），那么它就会被标记为不可达对象，等待GC。比如下图中Object1、2、3、4都是存活的对象，而 Object5、6、7都是可回收对象：</p>
+<p><img src="/images/2018-07/可达性分析.png" alt="可达性分析"></p>
+<p>Java虚拟机使用该算法来判断对象是否可被回收，在Java中GC Roots 一般包含以下内容：</p>
+<ul>
+<li>虚拟机栈中引用的对象</li>
+<li>本地方法栈中引用的对象</li>
+<li>方法区中类静态属性引用的对象</li>
+<li>方法区中的常量引用的对象</li>
+</ul>
+<h2 id="引用类型"><a href="#引用类型" class="headerlink" title="引用类型"></a>引用类型</h2><p>无论是通过引用计算算法判断对象的引用数量，还是通过可达性分析算法判断对象是否可达，判定对象是否可被回收都与引用有关。</p>
+<p>Java 具有四种强度不同的引用类型。</p>
+<h3 id="强引用"><a href="#强引用" class="headerlink" title="强引用"></a>强引用</h3><p>被强引用关联的对象不会被垃圾收集器回收。当内存空间不足，Java虚拟机宁愿抛出OutOfMemoryError错误，使程序异常终止，也不会靠随意回收具有强引用的对象来解决内存不足的问题。我们平时直接使用<code>new</code>关键字创建对象时就是对对象进行了强引用。</p>
+<p><strong>代码示例</strong><br><figure class="hljs highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">Object obj = <span class="hljs-keyword">new</span> Object();<br></code></pre></td></tr></table></figure></p>
+<h3 id="软引用"><a href="#软引用" class="headerlink" title="软引用"></a>软引用</h3><p>如果一个对象只具有软引用，则内存空间足够，垃圾回收器就不会回收它；如果内存空间不足了，就会回收这些对象的内存。软引用可用来实现内存敏感的高速缓存。</p>
+<p><strong>代码示例</strong><br><figure class="hljs highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">Object obj = <span class="hljs-keyword">new</span> Object();<br>SoftReference&lt;Object&gt; sf = <span class="hljs-keyword">new</span> SoftReference&lt;Object&gt;(obj);<br>obj = <span class="hljs-keyword">null</span>;  <span class="hljs-comment">// 使对象只被软引用关联</span><br></code></pre></td></tr></table></figure></p>
+<h3 id="弱引用"><a href="#弱引用" class="headerlink" title="弱引用"></a>弱引用</h3><p>弱引用是一种生命周期比软引用更短的引用。在垃圾回收器线程扫描它所管辖的内存区域的过程中，一旦发现了只具有弱引用的对象，不管当前内存空间足够与否，都会回收它的内存。不过，由于垃圾回收器是一个优先级很低的线程，因此不一定会很快发现那些只具有弱引用的对象。</p>
+<p>当你想引用一个对象，但是这个对象有自己的生命周期，你不想介入这个对象的生命周期，这时候你就是用弱引用。</p>
+<p><strong>代码示例</strong><br><figure class="hljs highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java">Object obj = <span class="hljs-keyword">new</span> Object();<br>WeakReference&lt;Object&gt; wf = <span class="hljs-keyword">new</span> WeakReference&lt;Object&gt;(obj);<br>obj = <span class="hljs-keyword">null</span>;<br></code></pre></td></tr></table></figure></p>
+<p>Tomcat 中的 ConcurrentCache 就使用了 WeakHashMap 来实现缓存功能。ConcurrentCache 采取的是分代缓存，经常使用的对象放入 eden 中，而不常用的对象放入 longterm。eden 使用 ConcurrentHashMap 实现，longterm 使用 WeakHashMap，保证了不常使用的对象容易被回收。</p>
+<figure class="hljs highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">final</span> <span class="hljs-class"><span class="hljs-keyword">class</span> <span class="hljs-title">ConcurrentCache</span>&lt;<span class="hljs-title">K</span>, <span class="hljs-title">V</span>&gt; </span>&#123;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> <span class="hljs-keyword">int</span> size;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;K, V&gt; eden;<br><br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">final</span> Map&lt;K, V&gt; longterm;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-title">ConcurrentCache</span><span class="hljs-params">(<span class="hljs-keyword">int</span> size)</span> </span>&#123;<br>        <span class="hljs-keyword">this</span>.size = size;<br>        <span class="hljs-keyword">this</span>.eden = <span class="hljs-keyword">new</span> ConcurrentHashMap&lt;&gt;(size);<br>        <span class="hljs-keyword">this</span>.longterm = <span class="hljs-keyword">new</span> WeakHashMap&lt;&gt;(size);<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> V <span class="hljs-title">get</span><span class="hljs-params">(K k)</span> </span>&#123;<br>        V v = <span class="hljs-keyword">this</span>.eden.get(k);<br>        <span class="hljs-keyword">if</span> (v == <span class="hljs-keyword">null</span>) &#123;<br>            v = <span class="hljs-keyword">this</span>.longterm.get(k);<br>            <span class="hljs-keyword">if</span> (v != <span class="hljs-keyword">null</span>)<br>                <span class="hljs-keyword">this</span>.eden.put(k, v);<br>        &#125;<br>        <span class="hljs-keyword">return</span> v;<br>    &#125;<br><br>    <span class="hljs-function"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title">put</span><span class="hljs-params">(K k, V v)</span> </span>&#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-keyword">this</span>.eden.size() &gt;= size) &#123;<br>            <span class="hljs-keyword">this</span>.longterm.putAll(<span class="hljs-keyword">this</span>.eden);<br>            <span class="hljs-keyword">this</span>.eden.clear();<br>        &#125;<br>        <span class="hljs-keyword">this</span>.eden.put(k, v);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+<h3 id="虚引用"><a href="#虚引用" class="headerlink" title="虚引用"></a>虚引用</h3><p>虚引用不同于其余三种引用，虚引用不会影响对象的生命周期，也无法通过虚引用获得对象的一个实例；如果一个对象仅持有虚引用，那么它就和没有任何引用一样，在任何时候都可能被垃圾回收器回收。虚引用主要用来跟踪对象被垃圾回收器回收的活动，它必须和引用队列联合使用。</p>
+<p><strong>代码示例</strong><br><figure class="hljs highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs undefined">final ReferenceQueue&lt;Object&gt; referenceQueue = new ReferenceQueue&lt;Object&gt;();<br>Object obj = new Object();<br>PhantomReference&lt;Object&gt; pf = new PhantomReference&lt;Object&gt;(obj, referenceQueue);<br>obj = null;<br></code></pre></td></tr></table></figure></p>
+<h3 id="引用队列"><a href="#引用队列" class="headerlink" title="引用队列"></a>引用队列</h3><p>在检测到适当的可到达性更改后，垃圾回收器会将已注册的引用对象添加到引用队列中。所以当一个对象被回收，需要进行额外的处理时，就需要使用引用队列了。</p>
+<p>从<a href="http://hg.openjdk.java.net/jdk7/jdk7/jdk/file/cf44386c8fe3/src/share/classes/java/lang/ref/ReferenceQueue.java" target="_blank" rel="noopener">源码</a>可以看到，<code>ReferenceQueue</code>的实现更像是栈，它有有入队(enqueue)和出队(poll&amp;remove，其中remove阻塞等待提取队列元素)的API。当引用对象被回收时会将对象进行入栈操作，然后我们可以通过出栈操作来进行对象被回收时的最后操作。</p>
+<p><strong>代码示例</strong><br><figure class="hljs highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java">Thread thread = <span class="hljs-keyword">new</span> Thread(() -&gt; &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-keyword">int</span> cnt = <span class="hljs-number">0</span>;<br>        WeakReference&lt;Object&gt; k;<br>        <span class="hljs-keyword">while</span>((k = (WeakReference) rq.remove()) != <span class="hljs-keyword">null</span>) &#123;<br>            System.out.println((cnt++) + <span class="hljs-string">"回收了:"</span> + k);<br>        &#125;<br>    &#125; <span class="hljs-keyword">catch</span>(InterruptedException e) &#123;<br>        <span class="hljs-comment">//结束循环</span><br>    &#125;<br>&#125;);<br>thread.setDaemon(<span class="hljs-keyword">true</span>);<br>thread.start();<br></code></pre></td></tr></table></figure></p>
+<h2 id="方法区的回收"><a href="#方法区的回收" class="headerlink" title="方法区的回收"></a>方法区的回收</h2><p>因为方法区主要存放永久代对象，而永久代对象的回收率比新生代差很多，因此在方法区上进行回收性价比不高。</p>
+<p>对方法区的回收主要是对常量池的回收和对类的卸载。类的卸载条件很多，需要满足以下三个条件，并且满足了也不一定会被卸载：</p>
+<ul>
+<li>该类所有的实例都已经被回收，也就是 Java 堆中不存在该类的任何实例。</li>
+<li>加载该类的 ClassLoader 已经被回收。</li>
+<li>该类对应的 java.lang.Class 对象没有在任何地方被引用，也就无法在任何地方通过反射访问该类方法。</li>
+</ul>
+<p>可以通过<code>-Xnoclassgc</code>参数来控制是否对类进行卸载。</p>
+<p>在大量使用反射、动态代理、CGLib 等 ByteCode 框架、动态生成 JSP 以及 OSGi 这类频繁自定义<code>ClassLoader</code>的场景都需要虚拟机具备类卸载功能，以保证不会出现内存溢出。</p>
+<p>在JDK1.8中，JVM摒弃了永久代，用元空间来作为方法区的实现。元空间的内存管理由元空间虚拟机来完成。先前，对于类的元数据我们需要不同的垃圾回收器进行处理，现在只需要执行元空间虚拟机的C++代码即可完成。在元空间中，类和其元数据的生命周期和其对应的类加载器是相同的。话句话说，只要类加载器存活，其加载的类的元数据也是存活的，因而不会被回收掉。</p>
+<h2 id="finalize"><a href="#finalize" class="headerlink" title="finalize()"></a>finalize()</h2><p><code>finalize()</code>类似C++的析构函数，用来做关闭外部资源等工作。但是<code>try-finally</code>等方式可以做的更好，并且该方法运行代价高昂，不确定性大，无法保证各个对象的调用顺序，因此最好不要使用。</p>
+<p>当一个对象可被回收时，如果需要执行该对象的<code>finalize()</code>方法，那么就有可能通过在该方法中让对象重新被引用，从而实现自救。自救只能进行一次，如果回收的对象之前调用了<code>finalize()</code>方法自救，后面回收时不会调用<code>finalize()</code>方法。</p>
+<h1 id="垃圾收集算法"><a href="#垃圾收集算法" class="headerlink" title="垃圾收集算法"></a>垃圾收集算法</h1><h2 id="标记－清除"><a href="#标记－清除" class="headerlink" title="标记－清除"></a>标记－清除</h2><p><img src="/images/2018-07/标记-清除算法.jpg" alt="标记-清除算法"></p>
+<p>标记－清除（Mark-Sweep）算法是最基础的垃圾收集算法，后续的收集算法都是基于它的思路并对其不足进行改进而得到的。算法分成“标记”、“清除”两个阶段：首先标记出所有需要回收的对象，在标记完成后统一回收所有被标记的对象。</p>
+<p>缺点：</p>
+<ul>
+<li>空间问题，标记清除之后会产生大量不连续的内存碎片，空间碎片太多可能会导致以后在程序运行过程中需要分配较大对象时，无法找到足够的连续内存而不得不触发另一次垃圾收集动作。</li>
+<li>效率问题，因为内存碎片的存在，操作会变得更加费时，因为查找下一个可用空闲块已不再是一个简单操作。</li>
+</ul>
+<h2 id="复制"><a href="#复制" class="headerlink" title="复制"></a>复制</h2><p><img src="/images/2018-07/复制算法.jpg" alt="复制算法"></p>
+<p>将可用内存按容量分成大小相等的两块，每次只使用其中的一块。当这一块内存用完，就将还存活着的对象复制到另一块上面，然后再把已使用过的内存空间一次清理掉。</p>
+<p>缺点：只能有效地使用一半内存。</p>
+<p>现在的商业虚拟机都采用这种收集算法来回收新生代，但是并不是将内存划分为大小相等的两块，而是分为一块较大的 Eden 空间和两块较小的 Survivor 空间，每次使用 Eden 空间和其中一块 Survivor。在回收时，将 Eden 和 Survivor 中还存活着的对象一次性复制到另一块 Survivor 空间上，最后清理 Eden 和使用过的那一块 Survivor。HotSpot 虚拟机的 Eden 和 Survivor 的大小比例默认为 8:1，保证了内存的利用率达到 90%。如果每次回收有多于 10% 的对象存活，那么一块 Survivor 空间就不够用了，此时需要依赖于老年代进行分配担保，也就是借用老年代的空间存储放不下的对象。</p>
+<h2 id="标记－整理"><a href="#标记－整理" class="headerlink" title="标记－整理"></a>标记－整理</h2><p><img src="/images/2018-07/标记-整理算法.png" alt="标记-整理算法"></p>
+<p>复制算法在对象存活率较高时要进行较多的复制操作，效率将会变低。更关键的是：如果不想浪费50%的空间，就需要有额外的空间进行分配担保，以应对被使用的内存中所有对象都100%存活的极端情况，所以在老年代一般不能直接选用复制算法。</p>
+<p>根据老年代的特点，标记－整理（Mark-Compact）算法被提出来，主要思想为：此算法的标记过程与标记－清除算法一样，但后续步骤不是直接对可回收对象进行清理，而是让所有存活的对象都向一端移动，然后直接清理掉边界以外的内存。</p>
+<h2 id="分代收集"><a href="#分代收集" class="headerlink" title="分代收集"></a>分代收集</h2><p>当前商业虚拟机的垃圾收集都采用分代收集（Generational Collection）算法，此算法相较于前几种没有什么新的特征，主要思想为：根据对象存活周期的不同将内存划分为几块，一般是把Java堆分为新生代和老年代，这样就可以根据各个年代的特点采用最适合的收集算法：</p>
+<ul>
+<li>新生代 在新生代中，每次垃圾收集时都发现有大批对象死去，只有少量存活，那就选用复制算法，只需要付出少量存活对象的复制成本就可以完成收集。</li>
+<li>老年代 在老年代中，因为对象存活率高、没有额外空间对它进行分配担保，就必须使用“标记-清除”或“标记-整理”算法来进行回收。</li>
+</ul>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p>周志明. 深入理解 Java 虚拟机 [M]. 机械工业出版社, 2011.<br><a href="https://github.com/CyC2018/Interview-Notebook/blob/master/notes/Java%20%E8%99%9A%E6%8B%9F%E6%9C%BA.md" target="_blank" rel="noopener">https://github.com/CyC2018/Interview-Notebook/blob/master/notes/Java%20%E8%99%9A%E6%8B%9F%E6%9C%BA.md</a><br><a href="https://www.sczyh30.com/posts/Java/java-reference-type/" target="_blank" rel="noopener">https://www.sczyh30.com/posts/Java/java-reference-type/</a><br><a href="https://blog.csdn.net/u011936381/article/details/11709245" target="_blank" rel="noopener">https://blog.csdn.net/u011936381/article/details/11709245</a><br><a href="https://www.jianshu.com/p/73260a46291c" target="_blank" rel="noopener">https://www.jianshu.com/p/73260a46291c</a><br><a href="https://crowhawk.github.io/2017/08/10/jvm_2/" target="_blank" rel="noopener">https://crowhawk.github.io/2017/08/10/jvm_2/</a></p>
+
+    </main>
+    <footer class="post-footer">
+      
+      <div class="post-tags">
+        
+        
+        
+        
+        <a class="post-tag button" href="/tags/笔记/" style="background: #fc6423;" rel="tag"><i class="fas fa-tags"></i>笔记</a>
+        
+        <a class="post-tag button" href="/tags/JVM/" style="background: #a3bb54;" rel="tag"><i class="fas fa-tags"></i>JVM</a>
+        
+        <a class="post-tag button" href="/tags/内存结构/" style="background: #47aaff;" rel="tag"><i class="fas fa-tags"></i>内存结构</a>
+        
+      </div>
+      
+    </footer>
+  </article>
+  
+  
+  <div class="post-nav">
+    <div class="post-nav-next post-nav-item">
+      
+      <a href="/2018/07/24/note-JVM-memory-1/" rel="next" title="【笔记】JVM内存管理（一） - 运行时内存区域"><i class="fas fa-angle-left"></i><span class="nav-title">【笔记】JVM内存管理（一） - 运行时内存区域</span></a>
+      
+    </div>
+    <div class="post-nav-prev post-nav-item">
+      
+      <a href="/2018/07/26/note-JVM-memory-3/" rel="prev" title="【笔记】JVM内存管理（三） - 垃圾收集器"><span class="nav-title">【笔记】JVM内存管理（三） - 垃圾收集器</span><i class="fas fa-angle-right"></i></a>
+      
+    </div>
+  </div>
+  
+  
+</div>
+
+          </div>
+          
+          
+          
+<aside class="sidebar" id="sidebar" style="background: url(/images/sidebar_background.png);">
+  
+  <div class="search">
+    <div class="form-group">
+      <i class="fas fa-search"></i><input type="search" id="search-input" name="q" results="0" placeholder="搜索" class="form-control"/>
+    </div>
+  </div>
+  <div class="search-result-box" id="search-result"></div>
+  
+  
+<div class="info sidebar-item" id="info">
+  
+  <img class="author-avatar" src="/images/avatar.jpg" alt="许桂斌">
+  
+  <h1 class="author-name">许桂斌</h1>
+  <h2 class="author-description"> </h2>
+  <div class="site-count">
+    
+    <div class="archives-count">
+      <div class="site-count-title">归档</div>
+      <div><a href="/archives/">7</a></div>
+    </div>
+    
+    
+    
+    <span class="site-count-divider divider">|</span>
+    
+    <div class="categories-count">
+      <div class="site-count-title">分类</div>
+      <div><a href="/categories/">3</a></div>
+    </div>
+    
+    
+    
+    <span class="site-count-divider divider">|</span>
+    
+    <div class="tags-count">
+      <div class="site-count-title">标签</div>
+      <div><a href="/tags/">8</a></div>
+    </div>
+    
+  </div>
+  
+  <div class="rss">
+    <a class="rss-link button sidebar-item" href="/atom.xml"><i class="fas fa-rss"></i>RSS</a>
+  </div>
+  
+</div>
+
+
+  <div class="sidebar-sticky">
+    
+    
+
+
+
+
+<hr>
+<div class="post-toc sidebar-item" id="toc-div">
+  <div><i class="fas fa-list-ol"></i>文章目录</div>
+  <div class="post-toc-content"><ol class="list-group toc"><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#判断一个对象是否存活"><span class="toc-text">判断一个对象是否存活</span></a><ol class="list-group toc-child"><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#引用计数算法"><span class="toc-text">引用计数算法</span></a></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#可达性分析算法"><span class="toc-text">可达性分析算法</span></a></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#引用类型"><span class="toc-text">引用类型</span></a><ol class="list-group toc-child"><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#强引用"><span class="toc-text">强引用</span></a></li><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#软引用"><span class="toc-text">软引用</span></a></li><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#弱引用"><span class="toc-text">弱引用</span></a></li><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#虚引用"><span class="toc-text">虚引用</span></a></li><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#引用队列"><span class="toc-text">引用队列</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#方法区的回收"><span class="toc-text">方法区的回收</span></a></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#finalize"><span class="toc-text">finalize()</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#垃圾收集算法"><span class="toc-text">垃圾收集算法</span></a><ol class="list-group toc-child"><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#标记－清除"><span class="toc-text">标记－清除</span></a></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#复制"><span class="toc-text">复制</span></a></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#标记－整理"><span class="toc-text">标记－整理</span></a></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#分代收集"><span class="toc-text">分代收集</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#参考"><span class="toc-text">参考</span></a></li></ol></div>
+</div>
+
+
+
+    
+    
+    
+<hr>
+<div class="social-link sidebar-item">
+  <div><i class="far fa-address-card"></i>社交链接</p></div>
+  <ul>
+    
+    <li><i class="fas fa-envelope"></i><a href="mailto:xuguibin.me@gmail.com" target="_blank">E-Mail</a></li>
+    
+    <li><i class="fab fa-github"></i><a href="https://github.com/xuguibin-soso" target="_blank">GitHub</a></li>
+    
+  </ul>
+</div>
+
+
+    
+    
+  </div>
+</aside>
+
+
+          
+        </div>
+      </div>
+    </main>
+    
+<footer id="footer" class="footer" style="background: #33363b;">
+  <div class="container">
+    <div class="back-to-top">
+      <a id="back-to-top"><i class="fas fa-angle-double-up"></i></a>
+    </div>
+    <div class="footer-container">
+      <div class="footer-left">
+        <div class="copyright">
+          <span class="author">许桂斌</span><span class="year"><i class="far fa-copyright"></i>2018</span><span class="creative-commons"><i class="fab fa-creative-commons"></i><a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">BY-NC 4.0</a></span>
+        </div>
+        
+      </div>
+      <div class="footer-right">
+        <div class="custom-info">
+          
+          托管于<i class="fab fa-github-alt"></i><a href="https://pages.github.com/" target="_blank">GitHub Pages</a>
+          
+        </div>
+        <div class="powered-by">
+          由 <a href="https://hexo.io/" target="_blank">Hexo</a> 强力驱动 | 主题 <a href="https://github.com/AlynxZhou/hexo-theme-aria/" target="_blank">ARIA</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+  </body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    
+    <meta name="theme-color" content="#33363b">
+    <meta name="msapplication-TileColor" content="#33363b">
+    
+    
+    
+    <meta name="keywords" content="Java, 西瓜冰, SoSo">
+    
+    
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/favicons/apple-touch-icon.png">
+    
+    
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/favicons/android-chrome-192x192.png">
+    
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicons/favicon-32x32.png">
+    
+    
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicons/favicon-16x16.png">
+    
+    
+    <link rel="mask-icon" href="/images/favicons/safari-pinned-tab.svg" color="#33363b">
+    
+    
+    <link rel="manifest" href="/images/favicons/site.webmanifest">
+    
+    
+    <meta name="msapplication-config" content="/images/favicons/browserconfig.xml">
+    
+    
+    <link rel="alternate" href="/atom.xml" title="SoSo" type="application/atom+xml" />
+    
+    
+    <link rel="shortcut icon" type="image/x-icon" href="/images/favicons/favicon.ico">
+    
+    
+    <link rel="stylesheet" type="text/css" href="/css/normalize.css">
+    <link rel="stylesheet" type="text/css" href="/css/index.css">
+    
+    <link rel="stylesheet" type="text/css" href="/css/sidebar.css">
+    
+    
+<link rel="stylesheet" type="text/css" href="/css/page.css">
+<link rel="stylesheet" type="text/css" href="/css/post.css">
+
+    <link rel="stylesheet" type="text/css" href="/css/custom.css">
+    <link rel="stylesheet" type="text/css" href="/css/atom-one-dark.css">
+    <link rel="stylesheet" type="text/css" href="/css/lightgallery.min.css">
+    <script type="text/javascript" src="/js/jquery.min.js"></script>
+    <script defer type="text/javascript" src="/js/util.js"></script>
+    <script defer type="text/javascript" src="/js/scrollspy.js"></script>
+    <script defer type="text/javascript" src="/js/fontawesome-all.min.js"></script>
+    <script defer type="text/javascript" src="/js/lightgallery.min.js"></script>
+    <script defer type="text/javascript" src="/js/lg-fullscreen.min.js"></script>
+    <script defer type="text/javascript" src="/js/lg-hash.min.js"></script>
+    <script defer type="text/javascript" src="/js/lg-pager.min.js"></script>
+    <script defer type="text/javascript" src="/js/lg-thumbnail.min.js"></script>
+    <script defer type="text/javascript" src="/js/lg-zoom.min.js"></script>
+    
+    
+    <script defer type="text/javascript" src="/js/search.js"></script>
+    <script type="text/javascript">
+    $(document).ready(function () {
+      var searchPath = "search.xml";
+      if (searchPath.length === 0) {
+        searchPath = "search.xml";
+      }
+      var path = "/" + searchPath;
+      searchFunc(path, "search-input", "search-result");
+    });
+    </script>
+    
+    
+    <script defer type="text/javascript" src="/js/index.js"></script>
+    
+    <script defer type="text/javascript" src="/js/custom.js"></script>
+    <title>【笔记】JVM内存管理（一） - 运行时内存区域 | SoSo</title>
+  </head>
+  <body itemscope itemtype="http://schema.org/WebPage" lang="zh_CN"  data-spy="scroll" data-target=".list-group">
+    
+<header id="header" class="header" style="background: #33363b;">
+  <div class="container">
+    <div class="header-container">
+      <div class="header-title">
+        <h1 class="title"><a href="/">
+          <div class="logo">
+            <img src="/theme_aria_logo.png" alt="logo">
+          </div>
+        </a></h1>
+        <h2 class="subtitle"></h2>
+      </div>
+      
+    </div>
+    
+<nav id="nav" class="nav">
+  <a id="nav-toggle" class="nav-toggle"><i class="fas fa-bars"></i></a>
+  <ul id="menu">
+    
+    <li><a href="/">首页</a></li>
+    
+    <li><a href="/archives/">归档</a></li>
+    
+    <li><a href="/categories/">分类</a></li>
+    
+    <li><a href="/tags/">标签</a></li>
+    
+  </ul>
+</nav>
+
+
+  </div>
+</header>
+
+
+    <main id="main" class="main">
+      <div class="container">
+        <div class="main-container">
+          <div class="content">
+            
+<div id="post" class="post">
+  
+  <article class="post-article card" itemscope itemtype="http://schema.org/Article">
+    <div class="post-block">
+      <link itemprop="mainEntityOfPage" href="https://soso.github.io/2018/07/24/note-JVM-memory-1/">
+      <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+       <meta itemprop="name" content="许桂斌">
+       <meta itemprop="description" content="">
+       <meta itemprop="image" content="/images/avatar.jpg">
+      </span>
+      <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+       <meta itemprop="name" content="SoSo">
+      </span>
+    </div>
+    <header class="post-header">
+      <h1 class="post-title" itemprop="name headline">【笔记】JVM内存管理（一） - 运行时内存区域</h1>
+      <div class="post-meta">
+        
+        <span class="post-date">
+          <i class="far fa-calendar-plus"></i><span><time title="post-date" itemprop="dateCreated datePublished" datetime="2018-07-24T03:54:37+08:00">2018-07-23 19:54:37</time></span>
+        </span>
+        
+        
+        
+        <span class="post-meta-divider divider">|</span>
+        
+        <span class="post-categories">
+          
+          <i class="far fa-folder-open"></i><span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/JVM/" itemprop="url" rel="index"><span itemprop="name">JVM</span></a></span>
+        </span>
+        
+        
+      </div>
+    </header>
+    <main class="post-main" itemprop="articleBody">
+      <p>JVM的内存区域分为程序计数器、虚拟机栈、本地方法栈等。<br><a id="more"></a></p>
+<p><img src="/images/2018-07/JVM内存区域.png" alt="JVM内存区域"></p>
+<h1 id="程序计数器"><a href="#程序计数器" class="headerlink" title="程序计数器"></a>程序计数器</h1><p>程序计数器主要用于存储正在执行的虚拟机字节码指令的地址（不是直接存储指令）。Java虚拟机会按照PC的地址从内存中读取第一条指令，每一条指令执行时，CPU会自动修改PC的量至下一条指令的地址，指令之间的跳转离不开PC。</p>
+<p>Java虚拟机允许多个线程同时执行指令。如果有多个线程正在执行指令，那么每个线程都会有一个程序计数器，它是线程私有的。在任意时刻，一个线程只允许执行一个方法的代码。每当执行到一条Java方法的指令时，程序计数器保存当前执行字节码的地址；若执行的为native方法，则PC的值为undefined。</p>
+<h1 id="虚拟机栈"><a href="#虚拟机栈" class="headerlink" title="虚拟机栈"></a>虚拟机栈</h1><p><img src="/images/2018-07/栈帧.png" alt="栈帧"></p>
+<p>每个 Java 方法在执行的同时会创建一个栈帧用于存储局部变量表、操作数栈、常量池引用、动态链接、方法出口等信息。每一个方法从调用直至执行完成的过程，就对应着一个栈帧在 Java 虚拟机栈中入栈和出栈的过程。</p>
+<p>Java 虚拟机栈在方法调用和返回中也扮演了很重要的角色。因为除了栈帧的入栈和出栈之外，Java虚拟机栈不会再受其它因素的影响，因此栈帧可在系统的堆上分配内存（注意，是系统的Heap而不是Java Heap）。Java虚拟机栈所使用的内存不需要保证是连续的。</p>
+<p>可以通过 -Xss 这个虚拟机参数来指定一个程序的 Java 虚拟机栈内存大小：<br><figure class="hljs highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">java -Xss=<span class="hljs-number">512</span>M HackTheJava<br></code></pre></td></tr></table></figure></p>
+<p>该区域可能抛出以下异常:</p>
+<ul>
+<li>当线程请求的栈深度超过最大值，会抛出 <code>StackOverflowError</code> 异常；</li>
+<li>栈进行动态扩展时如果无法申请到足够内存，会抛出 <code>OutOfMemoryError</code> 异常。</li>
+</ul>
+<h1 id="本地方法栈"><a href="#本地方法栈" class="headerlink" title="本地方法栈"></a>本地方法栈</h1><p>本地方法栈和Java虚拟机栈的作用相似，Java虚拟机栈执行的是字节码，而本地方法栈执行的是native方法。本地方法栈使用传统的栈（C Stack）来支持native方法。在HotSpot JVM中Java虚拟机栈和本地方法栈合二为一。</p>
+<p><img src="/images/2018-07/JNI工作原理图.gif" alt="JNI"></p>
+<h1 id="Java堆"><a href="#Java堆" class="headerlink" title="Java堆"></a>Java堆</h1><p>在JVM中，Java堆是可供各线程共享的运行时内存区域，是Java虚拟机所管理的内存区域中最大的一块，所有对象实例都在这里分配内存。同时，Java堆也是发生GC收集的主要区域。现代的垃圾收集器基本都是采用分代收集算法，主要思想是针对不同的对象采取不同的垃圾回收算法。虚拟机把Java堆分成以下三块：</p>
+<ul>
+<li>新生代（Young Generation）</li>
+<li>老年代（Old Generation）</li>
+<li>永久代（Permanent Generation）</li>
+</ul>
+<p>当一个对象被创建时，它首先进入新生代，之后有可能被转移到老年代中。<br>新生代存放着大量的生命很短的对象，因此新生代在三个区域中垃圾回收的频率最高。为了更高效地进行垃圾回收，把新生代继续划分成以下三个空间：</p>
+<ul>
+<li>Eden（伊甸园）</li>
+<li>From Survivor（幸存者）</li>
+<li>To Survivor</li>
+</ul>
+<p><img src="/images/2018-07/heap区内存.gif" alt="heap区内存"></p>
+<p>Java 堆不需要连续内存，并且可以动态增加其内存，增加失败会抛出 <code>OutOfMemoryError</code> 异常。</p>
+<p>可以通过 -Xms 和 -Xmx 两个虚拟机参数来指定一个程序的 Java 堆内存大小，第一个参数设置初始值，第二个参数设置最大值。<br><figure class="hljs highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">java -Xms=<span class="hljs-number">1</span>M -Xmx=<span class="hljs-number">2</span>M HackTheJava<br></code></pre></td></tr></table></figure></p>
+<h1 id="方法区"><a href="#方法区" class="headerlink" title="方法区"></a>方法区</h1><p>方法区是线程共享的，它储存了每一个类的结构信息，比如运行时常量池（runtime constant pool）、字段和方法数据、构造函数和普通方法的字节码内容，还包括一些初始化的时候用到的特殊方法。方法区是堆的逻辑部分。</p>
+<p>和 Java 堆一样不需要连续的内存，并且可以动态扩展，动态扩展失败一样会抛出 <code>OutOfMemoryError</code> 异常。</p>
+<p>对这块区域进行垃圾回收的主要目标是对常量池的回收和对类的卸载，但是一般比较难实现。</p>
+<p>在JDK1.7及以前的HotSpot JVM中，方法区位于永久代（Permanent Generation，PermGen）中。由于永久代内可能会发生内存泄露或溢出等问题而导致的java.lang.OutOfMemoryError: PermGen ，JEP小组从JDK1.7开始就筹划移除永久代，并且在JDK 1.7中把字符串常量，符号引用等移出了永久代。到了Java 8，永久代被彻底地移出了JVM，取而代之的是元空间（Metaspace）。</p>
+<h1 id="运行时常量池"><a href="#运行时常量池" class="headerlink" title="运行时常量池"></a>运行时常量池</h1><p>运行时常量池是class文件中每一个类或接口的常量池表的运行时表示形式，是方法区的一部分。它包括了若干种不同的常量。常量池表存放编译器生成的各种字面量和符号引用，这部分内容将在类加载后进入方法区的运行时常量池中存放。运行时常量池具有动态性，运行期间也可以将新的量放到运行时常量池中，典型的应用是<code>String</code>类的<code>intern()</code>方法。</p>
+<p>JDK 1.7开始，字符串常量和符号引用等就被移出永久代：</p>
+<ul>
+<li>符号引用迁移至系统堆内存(Native Heap)</li>
+<li>字符串字面量迁移至Java堆(Java Heap)</li>
+</ul>
+<h1 id="直接内存"><a href="#直接内存" class="headerlink" title="直接内存"></a>直接内存</h1><p>在 JDK 1.4 中新加入了 NIO 类，它可以使用 Native 函数库直接分配堆外内存，然后通过一个存储在 Java 堆里的 DirectByteBuffer 对象作为这块内存的引用进行操作。这样能在一些场景中显著提高性能，因为避免了在 Java 堆和 Native 堆中来回复制数据。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p>周志明. 深入理解 Java 虚拟机 [M]. 机械工业出版社, 2011.<br><a href="https://github.com/CyC2018/Interview-Notebook/blob/master/notes/Java%20%E8%99%9A%E6%8B%9F%E6%9C%BA.md" target="_blank" rel="noopener">https://github.com/CyC2018/Interview-Notebook/blob/master/notes/Java%20%E8%99%9A%E6%8B%9F%E6%9C%BA.md</a><br><a href="https://www.sczyh30.com/posts/Java/jvm-memory/#%E6%96%B9%E6%B3%95%E5%8C%BA" target="_blank" rel="noopener">https://www.sczyh30.com/posts/Java/jvm-memory/#%E6%96%B9%E6%B3%95%E5%8C%BA</a></p>
+
+    </main>
+    <footer class="post-footer">
+      
+      <div class="post-tags">
+        
+        
+        
+        
+        <a class="post-tag button" href="/tags/JVM/" style="background: #fc6423;" rel="tag"><i class="fas fa-tags"></i>JVM</a>
+        
+        <a class="post-tag button" href="/tags/内存结构/" style="background: #a3bb54;" rel="tag"><i class="fas fa-tags"></i>内存结构</a>
+        
+      </div>
+      
+    </footer>
+  </article>
+  
+  
+  <div class="post-nav">
+    <div class="post-nav-next post-nav-item">
+      
+      <a href="/2018/07/23/reproduce-JVM-load-class/" rel="next" title="【转】深入理解Java类加载器(ClassLoader)"><i class="fas fa-angle-left"></i><span class="nav-title">【转】深入理解Java类加载器(ClassLoader)</span></a>
+      
+    </div>
+    <div class="post-nav-prev post-nav-item">
+      
+      <a href="/2018/07/24/note-JVM-memory-2/" rel="prev" title="【笔记】JVM内存管理（二） - GC算法"><span class="nav-title">【笔记】JVM内存管理（二） - GC算法</span><i class="fas fa-angle-right"></i></a>
+      
+    </div>
+  </div>
+  
+  
+</div>
+
+          </div>
+          
+          
+          
+<aside class="sidebar" id="sidebar" style="background: url(/images/sidebar_background.png);">
+  
+  <div class="search">
+    <div class="form-group">
+      <i class="fas fa-search"></i><input type="search" id="search-input" name="q" results="0" placeholder="搜索" class="form-control"/>
+    </div>
+  </div>
+  <div class="search-result-box" id="search-result"></div>
+  
+  
+<div class="info sidebar-item" id="info">
+  
+  <img class="author-avatar" src="/images/avatar.jpg" alt="许桂斌">
+  
+  <h1 class="author-name">许桂斌</h1>
+  <h2 class="author-description"> </h2>
+  <div class="site-count">
+    
+    <div class="archives-count">
+      <div class="site-count-title">归档</div>
+      <div><a href="/archives/">7</a></div>
+    </div>
+    
+    
+    
+    <span class="site-count-divider divider">|</span>
+    
+    <div class="categories-count">
+      <div class="site-count-title">分类</div>
+      <div><a href="/categories/">3</a></div>
+    </div>
+    
+    
+    
+    <span class="site-count-divider divider">|</span>
+    
+    <div class="tags-count">
+      <div class="site-count-title">标签</div>
+      <div><a href="/tags/">8</a></div>
+    </div>
+    
+  </div>
+  
+  <div class="rss">
+    <a class="rss-link button sidebar-item" href="/atom.xml"><i class="fas fa-rss"></i>RSS</a>
+  </div>
+  
+</div>
+
+
+  <div class="sidebar-sticky">
+    
+    
+
+
+
+
+<hr>
+<div class="post-toc sidebar-item" id="toc-div">
+  <div><i class="fas fa-list-ol"></i>文章目录</div>
+  <div class="post-toc-content"><ol class="list-group toc"><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#程序计数器"><span class="toc-text">程序计数器</span></a></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#虚拟机栈"><span class="toc-text">虚拟机栈</span></a></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#本地方法栈"><span class="toc-text">本地方法栈</span></a></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#Java堆"><span class="toc-text">Java堆</span></a></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#方法区"><span class="toc-text">方法区</span></a></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#运行时常量池"><span class="toc-text">运行时常量池</span></a></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#直接内存"><span class="toc-text">直接内存</span></a></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#参考"><span class="toc-text">参考</span></a></li></ol></div>
+</div>
+
+
+
+    
+    
+    
+<hr>
+<div class="social-link sidebar-item">
+  <div><i class="far fa-address-card"></i>社交链接</p></div>
+  <ul>
+    
+    <li><i class="fas fa-envelope"></i><a href="mailto:xuguibin.me@gmail.com" target="_blank">E-Mail</a></li>
+    
+    <li><i class="fab fa-github"></i><a href="https://github.com/xuguibin-soso" target="_blank">GitHub</a></li>
+    
+  </ul>
+</div>
+
+
+    
+    
+  </div>
+</aside>
+
+
+          
+        </div>
+      </div>
+    </main>
+    
+<footer id="footer" class="footer" style="background: #33363b;">
+  <div class="container">
+    <div class="back-to-top">
+      <a id="back-to-top"><i class="fas fa-angle-double-up"></i></a>
+    </div>
+    <div class="footer-container">
+      <div class="footer-left">
+        <div class="copyright">
+          <span class="author">许桂斌</span><span class="year"><i class="far fa-copyright"></i>2018</span><span class="creative-commons"><i class="fab fa-creative-commons"></i><a href="http://creativecommons.org/licenses/by-nc/4.0/" target="_blank">BY-NC 4.0</a></span>
+        </div>
+        
+      </div>
+      <div class="footer-right">
+        <div class="custom-info">
+          
+          托管于<i class="fab fa-github-alt"></i><a href="https://pages.github.com/" target="_blank">GitHub Pages</a>
+          
+        </div>
+        <div class="powered-by">
+          由 <a href="https://hexo.io/" target="_blank">Hexo</a> 强力驱动 | 主题 <a href="https://github.com/AlynxZhou/hexo-theme-aria/" target="_blank">ARIA</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+  </body>
+</html>
