@@ -142,7 +142,7 @@
       <div class="post-meta">
         
         <span class="post-date">
-          <i class="far fa-calendar-plus"></i><span><time title="post-date" itemprop="dateCreated datePublished" datetime="2018-08-20T03:37:37+08:00">2018-08-19 19:37:37</time></span>
+          <i class="far fa-calendar-plus"></i><span><time title="post-date" itemprop="dateCreated datePublished" datetime="2018-08-19T19:37:37Z">2018-08-19 19:37:37</time></span>
         </span>
         
         
@@ -185,12 +185,70 @@
 <li>隔离性（isolation）<br>一个事务所做的修改在最终提交之前，对其他事务是不可见的。</li>
 <li>持久性（durability）<br>一旦事务提交，则其所做的修改就会永久保存到数据库中。</li>
 </ul>
-<h3 id="隔离级别"><a href="#隔离级别" class="headerlink" title="隔离级别"></a>隔离级别</h3><ul>
+<h3 id="隔离级别"><a href="#隔离级别" class="headerlink" title="隔离级别"></a>隔离级别</h3><p>三个概念</p>
+<ul>
 <li>脏读(dirty read)<br>一个事务T1更新(UPDATE)了一行数据(data1 -&gt; data2)，这时表数据已发生改变，但是事务T1还没提交，这时另一个事务T2去读这个数据data2，这种情况就是脏读。如果T1后续操作失败进行回滚的话，数据重新变回data1，T2读取的数据就是无效数据。</li>
-<li>不可重复读<br>一个事务读取到另外一个事务已经提交的数据，也就是说一个事务可以看到其他事务所做的修改。</li>
-<li>幻读<br>在一个事务内读取到了别的事务插入的数据，导致前后读取不一致。</li>
+<li>不可重复读<br>事务T1读取某一数据，事务T2读取并修改了该数据，T1为了对读取值进行检验而再次读取该数据，便得到了不同的结果。</li>
+<li>幻读<br>事务T1将表中符合字段A&gt;100的所有数据进行修改操作，同时事务T2插入了一条满足A&gt;100的数据，T1再次查询符合A&gt;100的数据进行校验，发现多出一条数据未修改，这种情况就是幻读。</li>
 </ul>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://book.douban.com/subject/23008813/" target="_blank" rel="noopener">《高性能MySQL》</a><br><a href="https://www.jianshu.com/p/d7665192aaaf" target="_blank" rel="noopener">https://www.jianshu.com/p/d7665192aaaf</a></p>
+<p>四种隔离级别</p>
+<ul>
+<li>READ UNCOMMITTED（未提交读）<br>事务中的修改，即使没有提交，对其他事务也都是可见的。</li>
+<li>READ COMMITTED（提交读）<br>一个事务开始时，只能“看见”已经提交的事务所做的修改。大多数数据库系统的默认隔离级别都是READ COMMITTED（MySQL不是）。</li>
+<li>REPEATABLE READ（可重复读）<br>保证了在同一个事务中多次读取同样记录的结果是一致的。可重复读是MySQL的默认隔离级别。</li>
+<li>SERIALIZABLE（可串行化）<br>最高隔离级别。强制事务串行执行，除非需要确保数据的一致性并且可以接受没有并发，不然不使用。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>隔离级别</th>
+<th>脏读可能性</th>
+<th>不可重复读可能性</th>
+<th>幻读可能性</th>
+<th>加锁</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>READ UNCOMMITTED</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>READ COMMITTED</td>
+<td>No</td>
+<td>Yes</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>REPEATABLE READ</td>
+<td>No</td>
+<td>No</td>
+<td>Yes</td>
+<td>No</td>
+</tr>
+<tr>
+<td>SERIALIZABLE</td>
+<td>No</td>
+<td>No</td>
+<td>No</td>
+<td>Yes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="死锁"><a href="#死锁" class="headerlink" title="死锁"></a>死锁</h3><p>当两个事务相互持有对方在等待的锁时，就会产生死锁。</p>
+<figure class="hljs highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs undefined">// 事务T1<br>START TRANSACTION;<br>SELECT close FROM StockPrice WHERE stock_id = 4 for update;<br>...<br>SELECT close FROM StockPrice WHERE stock_id = 3 for update;<br><br>// 事务T2<br>START TRANSACTION;<br>SELECT close FROM StockPrice WHERE stock_id = 3 for update;<br>...<br>SELECT close FROM StockPrice WHERE stock_id = 4 for update;<br></code></pre></td></tr></table></figure>
+<p>当如上两个事务同时执行时就会引发死锁问题。</p>
+<p>解决死锁一般有两种方法。</p>
+<ul>
+<li>检测死锁的循环依赖。</li>
+<li>查询的时间达到锁等待时间后放弃锁。</li>
+</ul>
+<p>锁机制是由不同存储引擎实现的。以同样的顺序执行语句，有些存储引擎会产生死锁，有些则不会。</p>
+<h3 id="MySQL中的事务"><a href="#MySQL中的事务" class="headerlink" title="MySQL中的事务"></a>MySQL中的事务</h3><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://book.douban.com/subject/23008813/" target="_blank" rel="noopener">《高性能MySQL》</a><br><a href="https://www.jianshu.com/p/d7665192aaaf" target="_blank" rel="noopener">https://www.jianshu.com/p/d7665192aaaf</a></p>
 
     </main>
     <footer class="post-footer">
@@ -200,9 +258,9 @@
         
         
         
-        <a class="post-tag button" href="/tags/MySQL/" style="background: #fc6423;" rel="tag"><i class="fas fa-tags"></i>MySQL</a>
+        <a class="post-tag button" href="/tags/笔记/" style="background: #fc6423;" rel="tag"><i class="fas fa-tags"></i>笔记</a>
         
-        <a class="post-tag button" href="/tags/笔记/" style="background: #a3bb54;" rel="tag"><i class="fas fa-tags"></i>笔记</a>
+        <a class="post-tag button" href="/tags/MySQL/" style="background: #a3bb54;" rel="tag"><i class="fas fa-tags"></i>MySQL</a>
         
         <a class="post-tag button" href="/tags/数据库/" style="background: #47aaff;" rel="tag"><i class="fas fa-tags"></i>数据库</a>
         
@@ -290,7 +348,7 @@
 <hr>
 <div class="post-toc sidebar-item" id="toc-div">
   <div><i class="fas fa-list-ol"></i>文章目录</div>
-  <div class="post-toc-content"><ol class="list-group toc"><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#MySQL逻辑架构"><span class="toc-text">MySQL逻辑架构</span></a></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#并发控制"><span class="toc-text">并发控制</span></a><ol class="list-group toc-child"><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#读写锁"><span class="toc-text">读写锁</span></a></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#锁粒度"><span class="toc-text">锁粒度</span></a></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#事务"><span class="toc-text">事务</span></a><ol class="list-group toc-child"><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#隔离级别"><span class="toc-text">隔离级别</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#参考"><span class="toc-text">参考</span></a></li></ol></div>
+  <div class="post-toc-content"><ol class="list-group toc"><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#MySQL逻辑架构"><span class="toc-text">MySQL逻辑架构</span></a></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#并发控制"><span class="toc-text">并发控制</span></a><ol class="list-group toc-child"><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#读写锁"><span class="toc-text">读写锁</span></a></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#锁粒度"><span class="toc-text">锁粒度</span></a></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#事务"><span class="toc-text">事务</span></a><ol class="list-group toc-child"><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#隔离级别"><span class="toc-text">隔离级别</span></a></li><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#死锁"><span class="toc-text">死锁</span></a></li><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#MySQL中的事务"><span class="toc-text">MySQL中的事务</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#参考"><span class="toc-text">参考</span></a></li></ol></div>
 </div>
 
 
