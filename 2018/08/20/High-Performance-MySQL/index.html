@@ -187,9 +187,9 @@
 </ul>
 <h3 id="隔离级别"><a href="#隔离级别" class="headerlink" title="隔离级别"></a>隔离级别</h3><p>三个概念</p>
 <ul>
-<li>脏读(dirty read)<br>一个事务T1更新(UPDATE)了一行数据(data1 -&gt; data2)，这时表数据已发生改变，但是事务T1还没提交，这时另一个事务T2去读这个数据data2，这种情况就是脏读。如果T1后续操作失败进行回滚的话，数据重新变回data1，T2读取的数据就是无效数据。</li>
-<li>不可重复读<br>事务T1读取某一数据，事务T2读取并修改了该数据，T1为了对读取值进行检验而再次读取该数据，便得到了不同的结果。</li>
-<li>幻读<br>事务T1将表中符合字段A&gt;100的所有数据进行修改操作，同时事务T2插入了一条满足A&gt;100的数据，T1再次查询符合A&gt;100的数据进行校验，发现多出一条数据未修改，这种情况就是幻读。</li>
+<li>脏读(dirty read)<br>一个事务T1更新(UPDATE)了一行数据(data1 -&gt; data2)，这时表数据已发生改变，但是事务T1还没提交，这时另一个事务T2去读这个数据data2，这种情况就是脏读。<br>如果T1后续操作失败进行回滚的话，数据重新变回data1，T2读取的数据data2就是无效数据。</li>
+<li>不可重复读<br>事务T1读取某一数据data1，事务T2读取并修改了该数据data -&gt; data2，T1为了对读取值进行检验而再次读取该数据data2，便得到了不同的结果，这种情况就是不可重复读。<br>因为每次重新查询的数据无法保证一致，所以事务T1的提交就无法保证正确。</li>
+<li>幻读<br>事务T1将表中满足字段A&gt;100的所有数据进行修改操作，同时事务T2插入了一条满足A&gt;100的数据，T1再次查询满足A&gt;100的数据进行校验，发现多出一条数据未修改，这种情况就是幻读。</li>
 </ul>
 <p>四种隔离级别</p>
 <ul>
@@ -239,6 +239,7 @@
 </tr>
 </tbody>
 </table>
+<p>可以使用下面的命令来修改事务的隔离级别。<br><figure class="hljs highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs sql">// 设置全局/当前会话的事务隔离级别<br><span class="hljs-keyword">SET</span> <span class="hljs-keyword">GLOBAL</span>/<span class="hljs-keyword">SESSION</span> <span class="hljs-keyword">TRANSACTION</span> <span class="hljs-keyword">ISOLATION</span> <span class="hljs-keyword">LEVEL</span> <span class="hljs-keyword">READ</span> COMMITTED;<br></code></pre></td></tr></table></figure></p>
 <h3 id="死锁"><a href="#死锁" class="headerlink" title="死锁"></a>死锁</h3><p>当两个事务相互持有对方在等待的锁时，就会产生死锁。</p>
 <figure class="hljs highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs undefined">// 事务T1<br>START TRANSACTION;<br>SELECT close FROM StockPrice WHERE stock_id = 4 for update;<br>...<br>SELECT close FROM StockPrice WHERE stock_id = 3 for update;<br><br>// 事务T2<br>START TRANSACTION;<br>SELECT close FROM StockPrice WHERE stock_id = 3 for update;<br>...<br>SELECT close FROM StockPrice WHERE stock_id = 4 for update;<br></code></pre></td></tr></table></figure>
 <p>当如上两个事务同时执行时就会引发死锁问题。</p>
@@ -248,7 +249,14 @@
 <li>查询的时间达到锁等待时间后放弃锁。</li>
 </ul>
 <p>锁机制是由不同存储引擎实现的。以同样的顺序执行语句，有些存储引擎会产生死锁，有些则不会。</p>
-<h3 id="MySQL中的事务"><a href="#MySQL中的事务" class="headerlink" title="MySQL中的事务"></a>MySQL中的事务</h3><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://book.douban.com/subject/23008813/" target="_blank" rel="noopener">《高性能MySQL》</a><br><a href="https://www.jianshu.com/p/d7665192aaaf" target="_blank" rel="noopener">https://www.jianshu.com/p/d7665192aaaf</a></p>
+<h3 id="MySQL中的事务"><a href="#MySQL中的事务" class="headerlink" title="MySQL中的事务"></a>MySQL中的事务</h3><ul>
+<li><p>自动提交（AutoCommit）<br>自动提交是指如果不是显示地开始一个事务，则每个查询都被当作一个事务执行提交。MySQL 默认采用自动提交（AUTOCOMMIT）模式。  </p>
+<figure class="hljs highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs undefined">// 查询是否开启自动提交<br>mysql&gt; SHOW VARIABLES LIKE &apos;AUTOCOMMIT&apos;;<br>// 开启自动提交<br>mysql&gt; SET AUTOCOMMIT = 1;<br></code></pre></td></tr></table></figure>
+</li>
+<li><p>在事务中混合使用存储引擎<br>因为事务是由下层的存储引擎实现的，如果在同一个事务内使用不同存储引擎，有的存储引擎支持事务（如 InnoDB），有的存储引擎不支持事务（如 MyISAM），那事务发生回滚时非事务型表的变更会无法撤销。因此不要在同一个事务中使用多种存储引擎。</p>
+</li>
+</ul>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://book.douban.com/subject/23008813/" target="_blank" rel="noopener">《高性能MySQL》</a><br><a href="https://www.jianshu.com/p/d7665192aaaf" target="_blank" rel="noopener">https://www.jianshu.com/p/d7665192aaaf</a></p>
 
     </main>
     <footer class="post-footer">
@@ -258,9 +266,9 @@
         
         
         
-        <a class="post-tag button" href="/tags/笔记/" style="background: #fc6423;" rel="tag"><i class="fas fa-tags"></i>笔记</a>
+        <a class="post-tag button" href="/tags/MySQL/" style="background: #fc6423;" rel="tag"><i class="fas fa-tags"></i>MySQL</a>
         
-        <a class="post-tag button" href="/tags/MySQL/" style="background: #a3bb54;" rel="tag"><i class="fas fa-tags"></i>MySQL</a>
+        <a class="post-tag button" href="/tags/笔记/" style="background: #a3bb54;" rel="tag"><i class="fas fa-tags"></i>笔记</a>
         
         <a class="post-tag button" href="/tags/数据库/" style="background: #47aaff;" rel="tag"><i class="fas fa-tags"></i>数据库</a>
         
