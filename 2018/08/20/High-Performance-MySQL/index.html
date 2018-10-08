@@ -142,7 +142,7 @@
       <div class="post-meta">
         
         <span class="post-date">
-          <i class="far fa-calendar-plus"></i><span><time title="post-date" itemprop="dateCreated datePublished" datetime="2018-08-20T03:37:37+08:00">2018-08-19 19:37:37</time></span>
+          <i class="far fa-calendar-plus"></i><span><time title="post-date" itemprop="dateCreated datePublished" datetime="2018-08-19T19:37:37Z">2018-08-19 19:37:37</time></span>
         </span>
         
         
@@ -253,10 +253,10 @@
 <li><p>自动提交（AutoCommit）<br>自动提交是指如果不是显示地开始一个事务，则每个查询都被当作一个事务执行提交。MySQL 默认采用自动提交（AUTOCOMMIT）模式。  </p>
 <figure class="hljs highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs undefined">// 查询是否开启自动提交<br>mysql&gt; SHOW VARIABLES LIKE &apos;AUTOCOMMIT&apos;;<br>// 开启自动提交<br>mysql&gt; SET AUTOCOMMIT = 1;<br></code></pre></td></tr></table></figure>
 </li>
-<li><p>在事务中混合使用存储引擎<br>因为事务是由下层的存储引擎实现的，如果在同一个事务内使用不同存储引擎，有的存储引擎支持事务（如 InnoDB），有的存储引擎不支持事务（如 MyISAM），那事务发生回滚时非事务型表的变更会无法撤销。因此不要在同一个事务中使用多种存储引擎。</p>
+<li><p>在事务中混合使用存储引擎<br>因为事务是由下层的存储引擎实现的，如果在同一个事务内使用不同存储引擎，有的存储引擎支持事务（如 InnoDB），有的存储引擎不支持事务（如 MyISAM），那事务发生回滚时非事务型表的变更会无法撤销。因此不要在同一个事务中使用多种存储引擎。   </p>
 </li>
 </ul>
-<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://book.douban.com/subject/23008813/" target="_blank" rel="noopener">《高性能MySQL》</a><br><a href="https://www.jianshu.com/p/d7665192aaaf" target="_blank" rel="noopener">https://www.jianshu.com/p/d7665192aaaf</a></p>
+<h2 id="多版本并发控制"><a href="#多版本并发控制" class="headerlink" title="多版本并发控制"></a>多版本并发控制</h2><h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://book.douban.com/subject/23008813/" target="_blank" rel="noopener">《高性能MySQL》</a><br><a href="https://www.jianshu.com/p/d7665192aaaf" target="_blank" rel="noopener">https://www.jianshu.com/p/d7665192aaaf</a></p>
 
     </main>
     <footer class="post-footer">
@@ -356,7 +356,7 @@
 <hr>
 <div class="post-toc sidebar-item" id="toc-div">
   <div><i class="fas fa-list-ol"></i>文章目录</div>
-  <div class="post-toc-content"><ol class="list-group toc"><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#MySQL逻辑架构"><span class="toc-text">MySQL逻辑架构</span></a></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#并发控制"><span class="toc-text">并发控制</span></a><ol class="list-group toc-child"><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#读写锁"><span class="toc-text">读写锁</span></a></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#锁粒度"><span class="toc-text">锁粒度</span></a></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#事务"><span class="toc-text">事务</span></a><ol class="list-group toc-child"><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#隔离级别"><span class="toc-text">隔离级别</span></a></li><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#死锁"><span class="toc-text">死锁</span></a></li><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#MySQL中的事务"><span class="toc-text">MySQL中的事务</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#参考"><span class="toc-text">参考</span></a></li></ol></div>
+  <div class="post-toc-content"><ol class="list-group toc"><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#MySQL逻辑架构"><span class="toc-text">MySQL逻辑架构</span></a></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#并发控制"><span class="toc-text">并发控制</span></a><ol class="list-group toc-child"><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#读写锁"><span class="toc-text">读写锁</span></a></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#锁粒度"><span class="toc-text">锁粒度</span></a></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#事务"><span class="toc-text">事务</span></a><ol class="list-group toc-child"><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#隔离级别"><span class="toc-text">隔离级别</span></a></li><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#死锁"><span class="toc-text">死锁</span></a></li><li class="toc-item toc-level-3"><a class="list-group-item toc-link" href="#MySQL中的事务"><span class="toc-text">MySQL中的事务</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="list-group-item toc-link" href="#多版本并发控制"><span class="toc-text">多版本并发控制</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="list-group-item toc-link" href="#参考"><span class="toc-text">参考</span></a></li></ol></div>
 </div>
 
 
